@@ -4,12 +4,15 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "sygmail"
-version = "0.1.0"
+version = "0.1.1"
 description = "Lightweight Gmail notification wrapper"
 readme = "README.md"
 requires-python = ">=3.9"
 dependencies = ["yagmail"]
 authors = [{name = "Satoshi Nakabayashi"}]
+
+[project.optional-dependencies]
+keyring = ["keyring"]
 
 [project.scripts]
 sygmail = "sygmail.cli:main"

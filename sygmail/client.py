@@ -7,8 +7,14 @@ from typing import Iterable, List, Optional
 
 import yagmail
 
+try:
+    import keyring
+except ImportError:  # pragma: no cover - optional dependency
+    keyring = None
+
 DEFAULT_SUBJECT = "Process Completed"
 DEFAULT_CONTENTS_TEMPLATE = "{script_name} has finished running."
+KEYRING_SERVICE = "sygmail"
 
 ENV_KEYS = {
     "from_addr": "SYGMAIL_FROM",
@@ -80,13 +86,20 @@ class Sygmail:
         subject: Optional[str] = None,
         contents: Optional[str] = None,
         attachments_path: Optional[str] = None,
+        use_keyring: bool = False,
         persist: bool = True,
     ) -> None:
         if from_addr is None and from_ is not None:
             from_addr = from_
         if from_addr is not None:
             self.config.from_addr = from_addr
-        if app_password is not None:
+        if app_password is not None and use_keyring:
+            resolved_from = from_addr or self.config.from_addr
+            if not resolved_from:
+                raise ValueError("from_addr is required to store keyring password")
+            _store_keyring_password(resolved_from, app_password)
+            self.config.app_password = None
+        elif app_password is not None:
             self.config.app_password = app_password
         if to is not None:
             self.config.to = to
@@ -117,7 +130,7 @@ class Sygmail:
         **kwargs,
     ) -> None:
         resolved_from = from_addr or from_ or self.config.from_addr
-        app_password = self.config.app_password
+        app_password = self.config.app_password or _get_keyring_password(resolved_from)
         target = to or self.config.to or resolved_from
 
         if not resolved_from or not app_password or not target:
@@ -203,6 +216,21 @@ def _warn_missing_attachments(paths: Iterable[str]) -> None:
         return
     joined = ", ".join(missing)
     warnings.warn(f"missing attachments ignored: {joined}", stacklevel=3)
+
+
+def _get_keyring_password(username: Optional[str]) -> Optional[str]:
+    if not username or keyring is None:
+        return None
+    try:
+        return keyring.get_password(KEYRING_SERVICE, username)
+    except Exception:
+        return None
+
+
+def _store_keyring_password(username: str, password: str) -> None:
+    if keyring is None:
+        raise RuntimeError("keyring is not installed")
+    keyring.set_password(KEYRING_SERVICE, username, password)
 
 
 def _read_env_file(env_path: str) -> dict:

@@ -36,6 +36,11 @@ def build_parser() -> argparse.ArgumentParser:
     config_set_parser.add_argument("--env", default=".env", help="Path to .env file")
     config_set_parser.add_argument("--from", dest="from_addr", help="From address")
     config_set_parser.add_argument("--app-password", help="Gmail app password")
+    config_set_parser.add_argument(
+        "--use-keyring",
+        action="store_true",
+        help="Store app password in keyring instead of .env",
+    )
     config_set_parser.add_argument("--to", help="To address")
     config_set_parser.add_argument("--subject", help="Email subject")
     config_set_parser.add_argument("--contents", help="Email contents")
@@ -110,6 +115,7 @@ def run_config_set(args: argparse.Namespace) -> int:
         subject=args.subject,
         contents=args.contents,
         attachments_path=args.attachments_path,
+        use_keyring=args.use_keyring,
         persist=True,
     )
     return 0

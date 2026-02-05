@@ -19,6 +19,7 @@ pip install sygmail
 
 - Python 3.9+
 - Dependency: `yagmail`
+- Optional: `keyring` (for OS credential store support)
 
 ## Quick start
 
@@ -42,8 +43,30 @@ SYGMAIL_APP_PASSWORD=app-password
 SYGMAIL_TO=to@example.com
 SYGMAIL_SUBJECT=Process Completed
 SYGMAIL_CONTENTS={script_name} has finished running.
-SYGMAIL_ATTACHMENTS_PATH=./a/
+SYGMAIL_ATTACHMENTS_PATH=/path/to/folder
 ```
+
+If you use keyring, you can leave `SYGMAIL_APP_PASSWORD` empty.
+
+Install keyring support:
+
+```
+pip install "sygmail[keyring]"
+```
+
+Keyring usage:
+
+```bash
+python -m sygmail config set --from you@gmail.com --app-password "app-password" --use-keyring
+python -m sygmail send
+```
+
+Notes:
+
+- Passwords are stored under the service name `sygmail` with the `from` address as the username.
+- If `SYGMAIL_APP_PASSWORD` is set, it is used first; otherwise keyring is used.
+- Storage uses your OS credential manager (macOS Keychain, Windows Credential Manager, or a Linux keyring).
+- To remove a stored password, delete it from your OS credential manager.
 
 ## Defaults
 
@@ -87,8 +110,8 @@ python -m sygmail send \
     --to to@example.com \
     --subject "Process Completed" \
     --contents "[sygmail notification]" \
-    --attachments ./path/to/file \
-    --attachments-path ./path/to/folder/
+    --attachments /path/to/file \
+    --attachments-path /path/to/folder/
 ```
 
 - If `--contents` is omitted, CLI uses `[sygmail notification]` without editing `.env`.
@@ -100,9 +123,13 @@ python -m sygmail send
 
 python -m sygmail send --subject "Job Done" --contents "[sygmail notification]"
 
-python -m sygmail send --attachments ./a/a.txt ./a/b.txt
+python -m sygmail send --attachments /path/to/file-a.txt /path/to/file-b.txt
+
+python -m sygmail send --attachments-path /path/to/folder/
 
 python -m sygmail config set --from you@gmail.com --app-password "app-password"
+
+python -m sygmail config set --from you@gmail.com --app-password "app-password" --use-keyring
 
 python -m sygmail config show
 ```
@@ -117,7 +144,7 @@ python -m sygmail config set \
     --to to@example.com \
     --subject "Process Completed" \
     --contents "{script_name} has finished running." \
-    --attachments-path ./a/
+    --attachments-path /path/to/folder/
 
 python -m sygmail config reset --env .env
 
