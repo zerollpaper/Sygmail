@@ -18,8 +18,7 @@ pip install sygmail
 ## Requirements
 
 - Python 3.9+
-- Dependency: `yagmail`
-- Optional: `keyring` (for OS credential store support)
+- Dependencies: `yagmail`, `keyring`
 
 ## Quick start
 
@@ -47,12 +46,6 @@ SYGMAIL_ATTACHMENTS_PATH=/path/to/folder
 ```
 
 If you use keyring, you can leave `SYGMAIL_APP_PASSWORD` empty.
-
-Install keyring support:
-
-```
-pip install "sygmail[keyring]"
-```
 
 Keyring usage:
 
